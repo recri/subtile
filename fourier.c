@@ -17,7 +17,7 @@ void fatal(char *msg)
   exit(1);
 }
 
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
   int n;							/* width and height of image */
   double srange;						/* width/2 and height/2 of fourier space */

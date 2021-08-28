@@ -406,7 +406,14 @@ proc fourier-subtiling {w} {
             set xy($p) {};
         }
     }
-    exec [info nameofexecutable] fourier.tcl << [join [array names xy] \n] &;
+    set dir $::subtile(home)
+    set exe [file join $dir fourier]
+    set tcl [file join $dir fourier.tcl]
+    if {[file exists $exe] && [file executable $exe]} {
+	exec $exe << [join [array names xy] \n] &;
+    } else {
+	exec [info nameofexecutable] $tcl << [join [array names xy] \n] &;
+    }
 }
 
 proc operate-subtiling {w command} {

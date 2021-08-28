@@ -1,4 +1,4 @@
-#!/usr/local/bin/wish8.0
+#!/usr/bin/wish
 
 #
 # a program to compute and display fourier transforms of a point set

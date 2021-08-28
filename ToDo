@@ -1,3 +1,9 @@
-2) Allow sweeping deletions
-4) Generate vertex atlases
+Old todos:
+[ ] Allow sweeping deletions
+[ ] Generate vertex atlases - may be done
+New todos:
+[ ] enable fourier transform
+[ ] test fourier transform
+[ ] test lots of things
+[ ] use snit to simplify code
 

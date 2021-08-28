@@ -1,7 +1,15 @@
+# this needs to reduce the resolution
+# of vertex coordinates to allow easy
+# matching
+proc vadd-loresolution {u v} {
+    return [vadd $u $v]
+}
+
 proc vertex-atlas-tiling {tiling} {
 
     # create a map of tiles incident to each vertex
-    global tcl_precision;
+    ## obsolete
+    ## global tcl_precision;
     set z [vmake 0 0];
     foreach tile $tiling {
 	# the tile type
@@ -22,9 +30,11 @@ proc vertex-atlas-tiling {tiling} {
 	    # remember the edge vector
 	    lappend vijs $vij;
 	    # remember the vertices at lower precision
-	    set tcl_precision 3;
-	    lappend vis [vadd $z $pi];
-	    set tcl_precision 6;
+	    ## obsolete
+	    ## set tcl_precision 3;
+	    lappend vis [vadd-loresolution $z $pi];
+	    ## obsolete
+	    ## set tcl_precision 6;
 	    # step to the next vertex
 	    set pj $pi;
 	}

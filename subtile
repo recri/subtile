@@ -2,11 +2,11 @@
 
 ########################################################################
 ##
-## If you want to install subtile as a command, then set this
-## variable to point to the source directory so that the library
-## functions and tilings can be loaded.
+## If you want to install subtile as a command, then make a symbolic
+## link to the subtile file in this directory.  We will follow the
+## symbolic link to find the libraries and tilings.
 ##
-set subtile(home) [pwd];
+set subtile(home) [file dirname [expr { ! [catch {file readlink [info script]} link] ? $link : [info script]}]]
 
 ########################################################################
 ##
@@ -18,7 +18,8 @@ lappend auto_path [file join $subtile(home) lib];
 ##
 ## load tiling definitions.
 ##
-set tcl_precision 17;
+## obsolete
+## set tcl_precision 17;
 
 set Pi [expr 4*atan(1)];
 set Tau [expr (1+sqrt(5))/2];
@@ -28,7 +29,8 @@ foreach t {penrose ammann danzer xdanzer binary pinwheel sphinx chair} {
     source [file join $subtile(home) tiling $t.tcl];
 }
 
-set tcl_precision 6
+## obsolete
+## set tcl_precision 6
 
 ########################################################################
 ##

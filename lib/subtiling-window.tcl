@@ -201,7 +201,7 @@ proc update-ops-menu {w} {
     # $w.m.o.m add command -label {make vertex matching atlas} -command "vertex-matching-atlas-subtiling $w"
     # $w.m.o.m add command -label {make edge matching atlas} -command "edge-matching-atlas-subtiling $w"
     $w.m.o.m add command -label {make vertex atlas} -command "vertex-atlas-subtiling $w";
-    #$w.m.o.m add command -label {make fourier map} -command "fourier-subtiling $w";
+    $w.m.o.m add command -label {make fourier map} -command "fourier-subtiling $w";
     $w.m.o.m add separator
     $w.m.o.m add command -label dismiss -command "destroy $w";
 }
@@ -407,13 +407,8 @@ proc fourier-subtiling {w} {
         }
     }
     set dir $::subtile(home)
-    set exe [file join $dir fourier]
     set tcl [file join $dir fourier.tcl]
-    if {[file exists $exe] && [file executable $exe]} {
-	exec $exe << [join [array names xy] \n] &;
-    } else {
-	exec [info nameofexecutable] $tcl << [join [array names xy] \n] &;
-    }
+    exec [info nameofexecutable] $tcl << [join [array names xy] \n] &;
 }
 
 proc operate-subtiling {w command} {

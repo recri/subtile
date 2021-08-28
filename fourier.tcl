@@ -8,6 +8,7 @@
 #
 # input data
 #
+set fourier(home) [file dirname [info script]]
 set fourier(points) [split [read stdin] \n];
 set fourier(npoints) [llength $fourier(points)]
 
@@ -102,9 +103,13 @@ proc fourier {} {
 # decide whether the _fourier.c program can be used
 #
 proc transform {image n srange npoints points} {
-    if {[file exists _fourier]
-     || ([file exists _fourier.c] && [catch {exec cc -o _fourier _fourier.c -lm}] == 0)} {
-	fast-transform;
+    set dir $::fourier(home)
+    set src [file join $dir fourier.c]
+    set exe [file join $dir fourier]
+
+    if {[file exists $exe]
+     || ([file exists $src] && [catch {exec cc -o $exe $src -lm}] == 0)} {
+	fast-transform $exe;
     } else {
 	slow-transform;
     }
@@ -208,11 +213,11 @@ proc slow-transform {} {
 #
 # compute the fourier transform with a C program
 #
-proc fast-transform {} {
+proc fast-transform {exe} {
     global fourier;
     upvar n n srange srange npoints npoints points points;
     set input "$n $srange $npoints\n[join $points \n]";
-    set fp [open "|_fourier << {$input}" r];
+    set fp [open "|$exe << {$input}" r];
     init-progress $n;
     set fourier(image) {};
     while {[gets $fp line] >= 0} {

@@ -1,9 +1,27 @@
 Old todos:
 [ ] Allow sweeping deletions
-[ ] Generate vertex atlases - may be done
+[x] Generate vertex atlases
+
 New todos:
-[ ] enable fourier transform
-[ ] test fourier transform
+[x] enable fourier transform
+[x] test fourier transform
 [ ] test lots of things
 [ ] use snit to simplify code
 
+Another do list for subtile:
+   4) make dissections go in adjacent pieces rather than skipping around
+   8) color the tiles
+   10) clip a tiling to a disk or polygon
+   14) graphically edit prototiles and dissection rules
+   16) generate vertex atlases
+   17) generate tile names from vertex atlases
+   18) color tiles according to names
+   19) save and restore tilings as tcl
+   20) reproduce edge markings
+   21) figure out where the holes in the tiling are coming from
+
+To do list for fourier:
+   1) allow the computation to be aborted
+   2) save images to ppm files
+   3) reload saved images
+   4) compute layers to improve the resolution of an existing image

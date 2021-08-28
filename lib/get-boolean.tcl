@@ -3,15 +3,15 @@
 #
 proc get-boolean {val} {
     switch -exact -- $val {
-	t - true - 1 - on {
-	    return 1;
-	}
-	f - false - 0 - off {
-	    return 0;
-	}
-	default {
-	    error "$val is not a boolean value";
-	}
+        t - true - 1 - on {
+            return 1;
+        }
+        f - false - 0 - off {
+            return 0;
+        }
+        default {
+            error "$val is not a boolean value";
+        }
     }
 }
 
@@ -21,9 +21,9 @@ proc get-boolean {val} {
 #
 proc merge-boolean {val curval} {
     if {"$val" == "!"} {
-	return [expr ! $curval];
+        return [expr ! $curval];
     } else {
-	return [get-boolean $val];
+        return [get-boolean $val];
     }
 }
 

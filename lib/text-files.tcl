@@ -9,8 +9,8 @@ proc read-file {filename} {
     set string {};
     set fileId [open $filename r];
     catch {
-	set string [read $fileId];
-	close $fileId;
+        set string [read $fileId];
+        close $fileId;
     }
     return $string;
 }
@@ -25,8 +25,8 @@ proc read-file-nonewline {filename} {
     set string {};
     set fileId [open $filename r];
     catch {
-	set string [read -nonewline $fileId];
-	close $fileId;
+        set string [read -nonewline $fileId];
+        close $fileId;
     }
     return $string;
 }
@@ -35,9 +35,9 @@ proc read-file-nonewline {filename} {
 #
 proc maybe-read-file {filename} {
     if {[file exists $filename]} {
-	return [read-file $filename];
+        return [read-file $filename];
     } else {
-	return {};
+        return {};
     }
 }
 #
@@ -49,12 +49,12 @@ proc maybe-read-file {filename} {
 #
 proc write-file {filename string} {
     if {[file exists $filename]} {
-	error "write-file: $filename: file already exists";
+        error "write-file: $filename: file already exists";
     } else {
-	set fileId [open $filename w];
-	puts -nonewline $fileId $string;
-	close $fileId;
-	return {};
+        set fileId [open $filename w];
+        puts -nonewline $fileId $string;
+        close $fileId;
+        return {};
     }
 }
 #

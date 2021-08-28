@@ -8,9 +8,9 @@
 proc list-difference {list1 list2} {
     set l {};
     foreach e $list1 {
-	if {[lsearch $list2 $e] < 0} {
-	    lappend l $e;
-	}
+        if {[lsearch $list2 $e] < 0} {
+            lappend l $e;
+        }
     }
     return $l;
 }
@@ -21,7 +21,7 @@ proc list-difference {list1 list2} {
 proc lrepeat {c n} {
     set l 0;
     while {[incr n -1] >= 0} {
-	lappend l $c;
+        lappend l $c;
     }
     return $l;
 }
@@ -32,8 +32,45 @@ proc lrepeat {c n} {
 proc lreverse {list} {
     set nlist {};
     foreach e $list {
-	set nlist [linsert $nlist 0 $e];
+        set nlist [linsert $nlist 0 $e];
     }
     return $nlist;
 }
 
+##
+## return the list rolled left n places
+##
+proc list-roll-left {l {n 1}} {
+    if {[llength $l] <= 1} {
+        return $l
+    }
+    if {$n < 0} {
+        return [list-roll-right $l [expr {-$n}]]
+    }
+    if {$n >= [llength $l]} {
+        set n [expr {$n%[llength $l]}]
+    }
+    if {$n == 0} {
+        return $l
+    }
+    return [concat [lrange $l $n end] [lrange $l 0 [expr {$n-1}]]]
+}
+
+##
+## return the list rolled right n places
+##
+proc list-roll-right {l {n 1}} {
+    if {[llength $l] <= 1} {
+        return $l
+    }
+    if {$n < 0} {
+        return [list-roll-left $l [expr {-$n}]]
+    }
+    if {$n >= [llength $l]} {
+        set n [expr {$n%[llength $l]}]
+    }
+    if {$n == 0} {
+        return $l
+    }
+    return [concat [lrange $l end-[expr {$n-1}] end] [lrange $l 0 end-$n]]
+}    

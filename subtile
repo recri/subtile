@@ -1,11 +1,9 @@
 #!/usr/bin/wish
+package provide app-subtile 1.0
 
-########################################################################
-##
-## If you want to install subtile as a command, then make a symbolic
-## link to the subtile file in this directory.  We will follow the
-## symbolic link to find the libraries and tilings.
-##
+package require Tk
+
+# set subtile(home) [file join $starkit::topdir lib app-subtile]
 set subtile(home) [file dirname [expr { ! [catch {file readlink [info script]} link] ? $link : [info script]}]]
 
 ########################################################################
@@ -18,419 +16,107 @@ lappend auto_path [file join $subtile(home) lib];
 ##
 ## load tiling definitions.
 ##
-## obsolete
-## set tcl_precision 17;
-
 set Pi [expr 4*atan(1)];
 set Tau [expr (1+sqrt(5))/2];
 set Sqrt2 [expr sqrt(2)];
 
-foreach t {penrose ammann danzer xdanzer binary pinwheel sphinx chair} {
+foreach t {
+    penrose penrose-KD penrose-A penrose-B penrose-R
+    ammann ammann-A2 ammann-A3 ammann-A4 ammann-A5 ammann-A5T
+    socolar shield wheel plate
+    ttt binary
+    danzer pinwheel sphinx chair
+} {
     source [file join $subtile(home) tiling $t.tcl];
 }
 
-## obsolete
-## set tcl_precision 6
 
 ########################################################################
 ##
-## default parameter values
+## default parameter values for subtiling window
+## some of which are shared by catalog-window (or overridden there)
 ##
-set subtile(no-draw) 0;
-set subtile(scale) 80;
-set subtile(edge) 200;
-set subtile(overlay) 1;
-set subtile(watch-tiles) 0;
+
+set subtile(catalog-scale) 80
+set subtile(catalog-no-draw) 0
+set subtile(catalog-overlay) 1
+set subtile(catalog-watch-tiles) 0
+set subtile(catalog-fill) white
+
+set subtile(tiling-scale) 200
+set subtile(tiling-no-draw) 0
+set subtile(tiling-overlay) 0
+set subtile(tiling-watch-tiles) 1
+set subtile(tiling-fill) {}
+
+set subtile(scale) 200;                 # initial window edge
+set subtile(overlay) 0;
+set subtile(watch-tiles) 1;
 set subtile(background) white;
 set subtile(fill) {};
 set subtile(activeFill) grey;
+set subtile(outline) black
+set subtile(activeOutline) green
+set subtile(tile-fill) blue
+set subtile(color) 1
 
-########################################################################
-##
-## main window.
-##
-## the main window has a menu button on top
-## and a scrollable canvas below.  The scrollable
-## canvas is used to present a graphical menu of
-## tilings and start patterns.
-##
-pack [frame .m -border 2 -relief raised] -side top -fill x
-pack [frame .c] -fill both -expand true;
+# tile decorations
+set subtile(arrow) 0;                   # should tiles have an arrow on
+                                        # their first edge
+set subtile(label) 0;                   # should tiles be labelled
+set subtile(decorate) 0;                # should tiles be decorated
 
-#
-# the menu
-#
-pack [menubutton .m.o -text Menu -menu .m.o.m] -side left
-menu .m.o.m -tearoff no;
-.m.o.m add command  -label {About Subtile} -command about-subtile
-.m.o.m add separator;
-.m.o.m add command -label Quit -command {destroy .}
+# tile generation
+set subtile(partials) 1;                # should tiles with missing parts
+                                        # be completed or ignored 
+set subtile(fillinholes) 1;             # 
 
+# postscript generation
+set subtile(save-postscript-directory) .
+set subtile(save-postscript-file) tiling.ps
+set subtile(pagesize) Letter
+set subtile(landscape) 0
+set subtile(colormode) gray
+
+# mouse actions in subtiling
+set subtile(mouse-1) rotate
+set subtile(mouse-3) scale
+set subtile(mouse-2) scroll
+
+# about subtile for toplevel window
 proc about-subtile {} {
     global subtile;
     about-something {About Subtile} [read-file [file join $subtile(home) README]];
 }
 
-########################################################################
-##
-## tiling window.
-## when an initial tile or tiling is selected,
-## a tiling window is popped up with a menu and
-## the initial tiling.
-##
-proc new-subtiling {} {
-    global subtile;
-    set w [new-window-name];
-    set start $subtile(start);
-    set tiling $subtile(tiling);
-    set scale $subtile(edge);
-    set background $subtile(background);
-    set fill $subtile(fill);
-    set activeFill $subtile(activeFill);
-
-    upvar \#0 $w subtile;
-    set subtile(scale) $scale;
-    set subtile(overlay) 0;
-    set subtile(watch-tiles) 1;
-    set subtile(no-draw) 0;
-    set subtile(start) $start;
-    set subtile(start-tiling) $tiling;
-    set subtile(tiling) $tiling;
-    set subtile(postscript) tiling.ps;
-    set subtile(landscape) 0;
-    set subtile(colormode) gray;
-    set subtile(background) $background;
-    set subtile(fill) $fill;
-    set subtile(activeFill) $activeFill;
-
-    toplevel $w;
-    wm title $w $subtile(tiling);
-    pack [frame $w.m -border 2 -relief raised] -side top -fill x;
-    pack [menubutton $w.m.o -text Operations -menu $w.m.o.m] -side left -anchor w;
-    update-ops-menu $w;
-    pack [canvas $w.c \
-	      -bg $subtile(background) \
-	      -width [expr 10+$subtile(scale)] \
-	      -height [expr 10+$subtile(scale)] \
-	      -xscrollincrement 1 \
-	      -yscrollincrement 1 \
-	     ] -fill both -expand true
-
-    #
-    # the canvas is configured to be larger than the displayed region
-    # mouse button 2 allows you to push the displayed region around
-    # mouse button 3 allows you to rescale the displayed image
-    #
-    $w.c bind tile <Enter> "$w.c itemconfigure current -fill {$subtile(activeFill)}";
-    $w.c bind tile <Leave> "$w.c itemconfigure current -fill {$subtile(fill)}";
-    $w.c bind tile <1> "delete-tile $w";
-    bind $w.c <2> "scroll-mark $w %x %y";
-    bind $w.c <Button2-Motion> "scroll-dragto $w %x %y";
-    bind $w.c <3> "scale-mark $w %x %y";
-    bind $w.c <Button3-Motion> "scale-dragto $w %x %y";
-
-    draw-subtiling $w;
-}
-
-#
-# rewrite the operation menu when the tiling changes
-#
-proc update-ops-menu {w} {
-    global subtile;
-    upvar \#0 $w data;
-    set args $subtile($data(tiling)-ops-menu);
-    catch {destroy $w.m.o.m};
-    menu $w.m.o.m -tearoff no;
-    $w.m.o.m add command -label {Subdivide Tiling} -command "draw-subtiling $w";
-    $w.m.o.m add command -label {Reset Tiling} -command "reset-subtiling $w";
-    $w.m.o.m add command -label {Vertex Atlas} -command "vertex-atlas-subtiling $w";
-    $w.m.o.m add command -label {Fourier Map} -command "fourier-subtiling $w";
-    $w.m.o.m add command -label {Save Postscript} -command "save-subtiling $w";
-    $w.m.o.m add separator;
-    if {[llength $args]} {
-	foreach arg $args {
-	    set title [lindex $arg 0];
-	    set command [lindex $arg 1];
-	    $w.m.o.m add command -label $title -command "operate-subtiling $w {$command}";
-	}
-	$w.m.o.m add separator;
-    }
-    $w.m.o.m add checkbutton -label {Watch Tiling} -variable ${w}(watch-tiles);
-    $w.m.o.m add checkbutton -label {Overlay Tiling} -variable ${w}(overlay);
-    $w.m.o.m add separator;
-    $w.m.o.m add command -label Dismiss -command "destroy $w";
-}
-
-#
-# delete or undelete tiles from the current tiling
-#
-proc delete-tile {w} {
-    upvar \#0 $w subtile;
-    foreach tag [$w.c gettags current] {
-	if {[regexp {^t([0-9]+)$} $tag all index]} {
-	    if {"[$w.c itemcget current -outline]" == {}} {
-		# undelete
-		$w.c itemconfigure current -fill $subtile(fill) -outline black;
-		set i [lsearch $subtile(deleted) $index];
-		set subtile(deleted) [lreplace $subtile(deleted) $i $i];
-	    } else {
-		# delete
-		$w.c itemconfigure current -fill {} -outline {};
-		lappend subtile(deleted) $index;
-	    }
-	}
+# build the initial tiling catalog.
+proc redraw-toplevel-catalog {w} {
+    global subtile
+    catch {$w.c delete all}
+    foreach tiling $subtile(tilings) {
+        pset title value $tiling
+        #puts "adding to catalog $title\n[join $subtile($value-start-menu) \n]"
+        if {[catch {catalog-tilings $w $title $value $subtile($value-start-menu)} error]} {
+            global errorInfo
+            error "$error\nduring $title processing" $errorInfo
+        }
     }
 }
 
-#
-# start a new drawing
-#
-proc start-tile-drawing {w} {
-    upvar \#0 $w subtile
-    if { ! $subtile(no-draw)} {
-	if { ! $subtile(overlay)} {
-	    $w.c delete all;
-	}
-    }
+# toplevel window
+# note that this ends up using the empty string as the variable
+# name for the options on the toplevel catalog
+set w [catalog-toplevel {} {Subtile} [array get subtile]]
+redraw-toplevel-catalog $w
+set subtile(toplevel-w) $w
+
+# fetch option settings from toplevel window
+proc get-default-options {} {
+    global subtile
+    return [get-default-options-from-window $subtile(toplevel-w)]
 }
-
-#
-# draw one tile
-#
-proc draw-tile {w tags tile} {
-    upvar \#0 $w subtile
-    set id [eval $w.c create polygon [join [lrange $tile 1 end] { }]];
-    $w.c itemconfigure $id -tags $tags -fill $subtile(fill) -outline black;
-    $w.c scale $id 0 0 $subtile(scale) $subtile(scale);
-    if {$subtile(watch-tiles)} {
-	update;
-    }
+# fetch option settings from a window
+proc get-default-options-from-window {w} {
+    upvar \#0 $w options
+    return [array get options]
 }
-
-#
-# draw all the tiles in a tiling
-#
-proc draw-tiling {w tags tiles} {
-    upvar \#0 $w subtile;
-    if {$subtile(no-draw) != 1} {
-	start-tile-drawing $w;
-	set n -1;
-	foreach tile $tiles {
-	    draw-tile $w "$tags t[incr n]" $tile;
-	}
-    }
-}
-
-#
-# evaluate without any drawing
-#
-proc with-no-drawing {w cmd} {
-    upvar \#0 $w subtile
-    set save $subtile(no-draw);
-    set subtile(no-draw) 1;
-    if {[catch {uplevel $cmd} result]} {
-	set subtile(no-draw) $save;
-	global errorInfo;
-	error $result $errorInfo;
-    } else {
-	set subtile(no-draw) $save;
-	return $result;
-    }
-}
-
-########################################################################
-##
-## user interface commands
-##
-proc reset-subtiling {w} {
-    upvar \#0 $w subtile
-    set subtile(tiling) $subtile(start-tiling);
-    wm title $w $subtile(tiling);
-    update-ops-menu $w;
-    unset subtile(current-tiling);
-    draw-subtiling $w;
-}
-
-proc draw-subtiling {w} {
-    upvar \#0 $w subtile
-    if {[info exists subtile(current-tiling)]} {
-	update-subtiling $w [$subtile(tiling)-make [current-subtiling $w] 1];
-    } else {
-	update-subtiling $w [$subtile(tiling)-make $subtile(start) 0];
-    }
-    if {$subtile(no-draw) != 1 && "$subtile(current-tiling)" != {}} {
-	draw-tiling $w tile $subtile(current-tiling);
-    }
-}
-
-proc fourier-subtiling {w} {
-    upvar \#0 $w subtile
-    foreach tile $subtile(current-tiling) {
-	foreach p [lrange $tile 1 end] {
-	    set xy($p) {};
-	}
-    }
-    exec [file join $::subtile(home) {fourier}] << [join [array names xy] \n] &;
-}
-
-proc operate-subtiling {w command} {
-    upvar \#0 $w subtile
-    if {[string match *-about* $command]} {
-	$command {};
-    } elseif {[info exists subtile(current-tiling)]} {
-	with-no-drawing $w {
-	    update-subtiling $w [$command [current-subtiling $w]];
-	}
-	draw-tiling $w tile $subtile(current-tiling);
-    }
-}
-
-proc current-subtiling {w} {
-    upvar \#0 $w subtile
-    if {[info exists subtile(deleted)]} {
-	set newts {}
-	set i 0;
-	foreach tile $subtile(current-tiling) {
-	    if {[lsearch $subtile(deleted) $i] < 0} {
-		lappend newts $tile;
-	    }
-	    incr i;
-	}
-	unset subtile(deleted);
-	return $newts;
-    } else {
-	return $subtile(current-tiling);
-    }
-}
-
-proc update-subtiling {w tt} {
-    upvar \#0 $w subtile
-    set tiling [lindex $tt 0];
-    set subtile(current-tiling) [lindex $tt 1];
-    if {"$tiling" != "$subtile(tiling)"} {
-	set subtile(tiling) $tiling;
-	wm title $w $tiling;
-	update-ops-menu $w;
-    }
-}
-
-proc save-subtiling {w} {
-    upvar \#0 $w subtile
-    set wp ${w}ps
-    if {[winfo exists $wp]} {
-	wm deiconify $wp;
-	wm raise $wp;
-    } else {
-	toplevel $wp;
-	wm title $wp "Save $subtile(tiling)";
-	pack [frame $wp.f0] -side top;
-	pack [label $wp.f0.l -text {File:}] -side left;
-	pack [entry $wp.f0.e -textvariable ${w}(postscript)] -side left -expand true -fill x;
-	pack [checkbutton $wp.landscape -text {Landscape} -variable ${w}(landscape)] -side top -anchor w;
-	pack [radiobutton $wp.color -text {Color} -variable ${w}(colormode) -value color] -side top -anchor w;
-	pack [radiobutton $wp.gray -text {Gray}  -variable ${w}(colormode) -value gray] -side top -anchor w;
-	pack [radiobutton $wp.mono -text {Monochrome}  -variable ${w}(colormode) -value mono] -side top -anchor w;
-	pack [button $wp.save -text {Save} -command "do-save-subtiling $w"] -side top;
-    }
-}
-
-proc do-save-subtiling {w} {
-    upvar \#0 $w subtile
-    $w.c postscript -file $subtile(postscript) -rotate $subtile(landscape) -colormode $subtile(colormode);
-}
-
-proc vertex-atlas-subtiling {w} {
-    upvar \#0 $w subtile
-    set tilings [vertex-atlas-tiling $subtile(current-tiling)];
-    #puts "reviewed vertices";
-    set w [new-window-name];
-    toplevel $w;
-    catalog-tilings $w "Vertex atlas of $subtile(tiling)" $subtile(tiling) $tilings;
-}
-
-########################################################################
-#
-# tiling catalogs.
-# 
-#
-
-#
-# normalize a tiling collection.
-# the tilings are rescaled by a common factor such that the largest member
-# fills the unit square, and all are centered in the unit square.
-#
-proc normalize-collection {collection} {
-    pset dx dy [dimension-collection $collection];
-    if {$dx > $dy} {
-	set s [expr 0.9/$dx]
-    } else {
-	set s [expr 0.9/$dy]
-    }
-    return [recenter-collection [rescale-collection $s $collection]];
-}
-
-proc catalog-tilings {w title value tilings} {
-    if { ! [winfo exists $w.c]} {
-	global subtile $w;
-
-	foreach name {no-draw scale overlay watch-tiles background fill activeFill} {
-	    set ${w}($name) $subtile($name);
-	}
-	set ${w}(fill) white;
-	set ${w}(x) 5;
-	set ${w}(y) 5;
-	set ${w}(dx) [expr $subtile(scale)+10];
-	set ${w}(dy) [expr $subtile(scale)+10];
-
-	pack [canvasview $w.c \
-	  -bg $subtile(background) \
-	  -vscroll 1 \
-	  -xscrollincrement 1 \
-	  -yscrollincrement 1 \
-	 ] -fill both -expand true
-
-	bind $w.c <2> "scroll-mark $w %x %y";
-	bind $w.c <Button2-Motion> "scroll-dragto $w %x %y";
-	bind $w.c <3> "scale-mark $w %x %y";
-	bind $w.c <Button3-Motion> "scale-dragto $w %x %y";
-    }
-
-    upvar \#0 $w subtile;
-
-    # write the title for this tiling
-    $w.c create text $subtile(x) $subtile(y) -text $title -anchor nw -tag at$subtile(y);
-    set subtile(y) [expr 5+[lindex [$w.c bbox at$subtile(y)] 3]];
-
-    # draw the initial tiles for this tiling
-    set n [llength $tilings];
-    #puts "display $n tilings\n[join $tilings \n]";
-    foreach arg [normalize-collection $tilings] {
-	if {($n == 4 && $subtile(x) > 2*$subtile(dx)) || $subtile(x) > 3*$subtile(dx)} {
-	    set subtile(x) 5;
-	    incr subtile(y) $subtile(dy);
-	}
-	set tag "$title [lindex $arg 0]";
-	regsub -all { } $tag - tag;
-	draw-tiling $w $tag [lindex $arg 1];
-	$w.c move $tag $subtile(x) $subtile(y);
-	$w.c bind $tag <Enter> "$w.c itemconfigure current -fill {$subtile(activeFill)}";
-	$w.c bind $tag <Leave> "$w.c itemconfigure current -fill {$subtile(fill)}";
-	$w.c bind $tag <1> "set subtile(tiling) $value; set subtile(start) {[lindex $arg 1]}; new-subtiling";
-	incr subtile(x) $subtile(dx);
-    }
-    set subtile(x) 5;
-    incr subtile(y) $subtile(dy);
-    $w.c configure -scrollregion "0 0 [expr 3*$subtile(dx)+10] $subtile(y)" -width [expr 3*$subtile(dx)+10];
-}
-
-########################################################################
-##
-## build the initial tiling catalog.
-##
-foreach tiling $subtile(tilings) {
-    set title [lindex $tiling 0];
-    set value [lindex $tiling 1];
-    set tiles $subtile($value-start-menu);
-    catalog-tilings .c $title $value $tiles;
-}
-

@@ -3,43 +3,39 @@
 #
 proc tile-signed-area {tile} {
     set a 0;
-    set pi [lindex $tile 1];
-    set pj [lindex $tile 2];
+    set pi [tile-vertex $tile 0];
+    set pj [tile-vertex $tile 1];
     set vij [vsub $pj $pi];
-    for {set i 3} {$i < [llength $tile]} {incr i} {
-	set pk [lindex $tile $i];
-	set vik [vsub $pk $pi];
-	set a [expr $a + [vcross $vij $vik]];
-	set vij $vik;
+    for {set i 2} {$i < [tile-size $tile]} {incr i} {
+        set pk [tile-vertex $tile $i];
+        set vik [vsub $pk $pi];
+        set a [expr $a + [vcross $vij $vik]];
+        set vij $vik;
     }
     return $a;
 }
 
 proc clockwise-tile-p {tile} {
     if {[tile-signed-area $tile] < 0} {
-	return 1;
+        return 1;
     } else {
-	return 0;
+        return 0;
     }
 }
 
 proc anti-clockwise-tile-p {tile} {
     if {[tile-signed-area $tile] > 0} {
-	return 1;
+        return 1;
     } else {
-	return 0;
+        return 0;
     }
 }
 
 proc anti-clockwise-tile {tile} {
     if {[anti-clockwise-tile-p $tile]} {
-	return $tile;
+        return $tile;
     } else {
-	set newt [lindex $tile 0];
-	for {set i [llength $tile]} {[incr i -1] > 0} {} {
-	    lappend newt [lindex $tile $i];
-	}
-	return $newt;
+        return [make-tile-from-type-and-list-of-vertices [tile-type $tile] [lreverse [tile-vertices $tile]]]
     }
 }
 
@@ -49,7 +45,7 @@ proc anti-clockwise-tile {tile} {
 proc anti-clockwise-tiling {tiles} {
     set newts {};
     foreach tile $tiles {
-	lappend newts [anti-clockwise-tile $tile];
+        lappend newts [anti-clockwise-tile $tile];
     }
     return $newts;
 }
@@ -60,7 +56,7 @@ proc anti-clockwise-tiling {tiles} {
 proc anti-clockwise-collection {collection} {
     set newc {};
     foreach item $collection {
-	lappend newc [list [lindex $item 0] [anti-clockwise-tiling [lindex $item 1]]];
+        lappend newc [list [lindex $item 0] [anti-clockwise-tiling [lindex $item 1]]];
     }
     return $newc;
 }

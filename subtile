@@ -270,7 +270,7 @@ proc fourier-subtiling {w} {
 	    set xy($p) {};
 	}
     }
-    exec fourier << [join [array names xy] \n] &;
+    exec [file join $::subtile(home) {fourier}] << [join [array names xy] \n] &;
 }
 
 proc operate-subtiling {w command} {

@@ -5,6 +5,7 @@ fourier transforms of their vertex sets.
 
 Copyright 1995 by Roger Evans Critchlow Jr, San Francisco, California.
 Copyright 1998 by Roger Evans Critchlow Jr, Santa Fe, New Mexico, USA.
+Copyright 2021 by Roger Evans Critchlow Jr, Charlestown, Massachusetts, USA.
 All rights reserved, fair use permitted, no warranty.
 
 rec@elf.org, December 4, 1998
@@ -22,12 +23,16 @@ Mathematica programs for computing some tilings and a C program,
 written by Stuart Levy, for computing the fourier transform of a set
 of points in the plane.
 
-This version, subtile-0.3, differs from the previous version in that
+The last version, subtile-0.3, differs from the previous version in that
 it has been upgraded to run with the latest version of tcl/tk, 8.0.3,
 the file name manipulations have been modified so they will work on
 windows or the macintosh as well as unix, and in using a tcl archive
 for distribution which will extract the files on windows or the mac as 
 well as unix.
+
+This version, subtile-0.4, is under development at 
+     https://github.com/recri/subtile
+and is licensed under the MIT license.     
 
 ------------------------------------------------------------------------
     
@@ -53,22 +58,13 @@ _fourier.c - a program written in C to compute fourier transforms of
 
 Acquisition and installation.
 
-The sources are available from:
+ The older sources are available from:
 
 	http://www.elf.org/pub/subtile-0.3.tcl 
 
-They require the Tcl-8.0.3/Tk-8.0.3 distribution, specifically the
-wish8.0 interpreter and its associated libraries.  This may be obtained
-from:
-	http://www.scriptics.com
-
-On unix the first lines of subtile and fourier may need to be modified
-if your wish8.0 isn't found in the default location, namely
-/usr/local/bin/wish8.0.  If your copy of wish8.0 is found in
-/usr/bin/wish8.0, then you would change the first lines of subtile and
-fourier to read:
-
-#!/usr/bin/wish8.0
+ The current source is hosted at
+     https://github.com/recri/subtile
+and is licensed under the MIT license.     
 
 The supplied Makefile will compile _fourier.c, if possible and it
 should be possible on any unix machine that hosts a C compiler.
@@ -171,5 +167,6 @@ To do list for fourier:
 
 -- rec@elf.org --
 December 4, 1998
+updated August 28, 2021
 
 
